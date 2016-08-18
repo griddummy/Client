@@ -32,6 +32,8 @@ public class RoomForm : UIForm {
         {
             Debug.Log("게스트모드");
             netManger.RegisterReceiveNotificationP2P((int)P2PPacketType.NewGuestEnter, OnReceiveP2PNewGuestEnter);
+            netManger.RegisterReceiveNotificationP2P((int)P2PPacketType.GuestLeave, OnReceiveP2PGuestLeave);
+            netManger.RegisterReceiveNotificationP2P((int)P2PPacketType.HostLeave, OnReceiveP2PHostLeave);
             // 플레이어 슬롯 등록
             byte[] index;
             string[] userName;
@@ -54,6 +56,8 @@ public class RoomForm : UIForm {
         else
         {
             netManger.UnRegisterReceiveNotificationP2P((int)P2PPacketType.NewGuestEnter);
+            netManger.UnRegisterReceiveNotificationP2P((int)P2PPacketType.GuestLeave);
+            netManger.UnRegisterReceiveNotificationP2P((int)P2PPacketType.HostLeave);
         }
        
     }
@@ -155,7 +159,7 @@ public class RoomForm : UIForm {
         SetPlayerSlot(packet.GetData().guestIndex, packet.GetData().userName);
         Debug.Log("RoomForm::새로운 게스트 입장 - " + packet.GetData().userName);
     }
-    public void OnReceiveP2PGuestLeave(Socket client, byte[] data)
+    public void OnReceiveP2PGuestLeave(Socket client, byte[] data) // Guest To Host or Host To ALL Guest
     {
         P2PGuestLeavePacket prePacket = new P2PGuestLeavePacket(data);        
         int index = prePacket.GetData().guestIndex;
@@ -172,7 +176,7 @@ public class RoomForm : UIForm {
         // 슬롯을 초기화 한다.
         SetPlayerSlot(index, "");
     }
-    public void OnReceiveP2PHostLeave(Socket client, byte[] data)
+    public void OnReceiveP2PHostLeave(Socket client, byte[] data) // Host TO Guest 호스트 퇴장
     {
         // 호스트가 퇴장 했으면
         // 소켓닫고

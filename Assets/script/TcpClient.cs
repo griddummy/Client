@@ -28,28 +28,29 @@ public class TcpClient
     }
     public TcpClient()
     {
-        // create socket
-        m_clientSock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        
         asyncReceiveCallback = new AsyncCallback(HandleAsyncReceive);
     }
 
     public void Setup(string ip, int port)
     {
-        if (m_clientSock.Connected)
-            return;
-
         m_strIP = ip;
         m_port = port;
     }
 
     public bool Connect()
     {        
-        if (m_clientSock.Connected)
-            return false;
+        if(m_clientSock != null)
+        {
+            if (m_clientSock.Connected)
+                return false;
+        }
+        
 
         // connect server
         try
         {
+            m_clientSock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             m_clientSock.Connect(new IPEndPoint(IPAddress.Parse(m_strIP), m_port));
         }
         catch(SocketException e)
