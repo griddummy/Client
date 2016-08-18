@@ -33,7 +33,7 @@ public class NetManager : MonoBehaviour {
     public int GameServerPort = 9800;
 
     public string HostIP;
-    public int HostPort = 9800;    
+    public int HostPort = 9700;    
 
     void Awake()
     {

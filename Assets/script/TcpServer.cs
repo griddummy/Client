@@ -37,12 +37,31 @@ public class TcpServer
         if (listenSock.Connected)
             return;
         // bind listening socket
-        listenSock.Bind(new IPEndPoint(IPAddress.Parse(m_strIP), m_port));
+        string ip = GetLocalIPAddress();
+        Debug.Log("내 로컬 IP " + ip);
+        listenSock.Bind(new IPEndPoint(IPAddress.Parse(ip), m_port));
 
         //listen listening socket
         listenSock.Listen(10);
-    }
 
+        AsyncCallback asyncAcceptCallback = new AsyncCallback(HandleAsyncAccept);
+        AsyncData asyncData = new AsyncData();
+        object ob = asyncData;
+        ob = listenSock;
+        listenSock.BeginAccept(asyncAcceptCallback, ob);
+    }
+    public static string GetLocalIPAddress()
+    {
+        var host = Dns.GetHostEntry(Dns.GetHostName());
+        foreach (var ip in host.AddressList)
+        {
+            if (ip.AddressFamily == AddressFamily.InterNetwork)
+            {                
+                return ip.ToString();
+            }
+        }
+        throw new Exception("Local IP Address Not Found!");
+    }
     public void Setup(string ip, int port)
     {
         if (listenSock.Connected)
