@@ -207,7 +207,10 @@ public class NetManager : MonoBehaviour {
         int sendSize = 0;
         byte[] data = CreateCompletedPacket(packet);
         if (data == null)
+        {
+            Debug.Log("SendToAllGuest() - 잘못된 패킷" + packet.GetPacketId().ToString());
             return 0;
+        }            
 
         //전송
         m_host.SendAll( data, data.Length);        

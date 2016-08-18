@@ -22,18 +22,22 @@ public class RoomForm : UIForm {
         gm = GameManager.instance;
         netManger = GameManager.instance.netManager;
         curRoomInfo = GameManager.instance.currentRoomInfo;
-        SetPlayerSlot(0, curRoomInfo.GetHostInfo().userName); 
+        SetPlayerSlot(0, curRoomInfo.GetHostInfo().userName);
+        netManger.RegisterReceiveNotificationP2P((int)P2PPacketType.GuestLeave, OnReceiveP2PGuestLeave);
+        netManger.RegisterReceiveNotificationP2P((int)P2PPacketType.EnterRoom, OnReceiveGuestEnterMyRoom);
+        netManger.RegisterReceiveNotificationP2P((int)P2PPacketType.NewGuestEnter, OnReceiveP2PNewGuestEnter);
+        netManger.RegisterReceiveNotificationP2P((int)P2PPacketType.HostLeave, OnReceiveP2PHostLeave);
+        netManger.RegisterReceiveNotificationP2P((int)P2PPacketType.Chat, OnReceiveP2PChat);
         if (curRoomInfo.isHost) // 호스트
         {
             Debug.Log("호스트모드");
-            netManger.RegisterReceiveNotificationP2P((int)P2PPacketType.EnterRoom, OnReceiveGuestEnterMyRoom);
+            
+            
         }
         else
         {
             Debug.Log("게스트모드");
-            netManger.RegisterReceiveNotificationP2P((int)P2PPacketType.NewGuestEnter, OnReceiveP2PNewGuestEnter);
-            netManger.RegisterReceiveNotificationP2P((int)P2PPacketType.GuestLeave, OnReceiveP2PGuestLeave);
-            netManger.RegisterReceiveNotificationP2P((int)P2PPacketType.HostLeave, OnReceiveP2PHostLeave);
+            
             // 플레이어 슬롯 등록
             byte[] index;
             string[] userName;
@@ -49,15 +53,18 @@ public class RoomForm : UIForm {
 
     protected override void OnPause()
     {
+        netManger.UnRegisterReceiveNotificationP2P((int)P2PPacketType.EnterRoom);
+        netManger.UnRegisterReceiveNotificationP2P((int)P2PPacketType.NewGuestEnter);
+        netManger.UnRegisterReceiveNotificationP2P((int)P2PPacketType.GuestLeave);
+        netManger.UnRegisterReceiveNotificationP2P((int)P2PPacketType.HostLeave);
+        netManger.UnRegisterReceiveNotificationP2P((int)P2PPacketType.Chat);
         if (curRoomInfo.isHost) // 호스트
         {
-            netManger.UnRegisterReceiveNotificationP2P((int)P2PPacketType.EnterRoom);
+            
         }
         else
         {
-            netManger.UnRegisterReceiveNotificationP2P((int)P2PPacketType.NewGuestEnter);
-            netManger.UnRegisterReceiveNotificationP2P((int)P2PPacketType.GuestLeave);
-            netManger.UnRegisterReceiveNotificationP2P((int)P2PPacketType.HostLeave);
+            
         }
        
     }
@@ -105,7 +112,28 @@ public class RoomForm : UIForm {
     {
         
     }
+    public void OnClickChat()
+    {
+        string chat = inputChat.text;
+        if (chat.Length == 0)
+            return;
 
+        P2PChatData data = new P2PChatData();
+        data.chat = chat;
+        data.guestIndex = (byte)curRoomInfo.myIndex;
+        P2PChatPacket packet = new P2PChatPacket(data);
+        if (curRoomInfo.isHost)
+        {
+            AddChat(chat,0);
+            netManger.SendToAllGuest(packet);
+            return;
+        }
+        netManger.SendToHost(packet);
+    }
+    private void AddChat(string chat, int index)
+    {
+        txtChatWindow.text += curRoomInfo.GetGuestInfo(index).userName+ ":"+chat + "\n";        
+    }
     private void OnReceiveGuestEnterMyRoom(Socket client, byte[] data)// GuestToHost 게스트 입장시도
     {
         // 성공시
@@ -191,5 +219,22 @@ public class RoomForm : UIForm {
         netManger.SendToServer(sendPacketToServer);
         // 로비로
         ChangeForm(typeof(LobbyForm).Name);
+    }
+    public void OnReceiveP2PChat(Socket client, byte[] data)
+    {
+        // 출력       
+        P2PChatPacket packet = new P2PChatPacket(data);
+                
+        AddChat(packet.GetData().chat, curRoomInfo.myIndex);
+        
+        if (curRoomInfo.isHost)
+        {
+            // 브로드캐스트
+            P2PChatPacket sendPacket = new P2PChatPacket(packet.GetData());
+            netManger.SendToAllGuest(sendPacket);
+            return;
+        }
+        
+        
     }
 }
