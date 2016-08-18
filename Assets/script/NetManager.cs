@@ -83,7 +83,7 @@ public class NetManager : MonoBehaviour {
     }
     public void StartHostServer()
     {
-        
+        m_host.Start();
     }
     public bool ConnectToGameServer() // 서버로 연결
     {
