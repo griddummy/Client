@@ -16,13 +16,11 @@ public class RoomForm : UIForm {
     private GameManager gm;
     private RoomInfo curRoomInfo;
     private NetManager netManger;
-    void Start()
+
+    protected override void OnResume()
     {
         gm = GameManager.instance;
         netManger = GameManager.instance.netManager;
-    }
-    protected override void OnResume()
-    {
         curRoomInfo = GameManager.instance.currentRoomInfo;
         SetPlayerSlot(0, curRoomInfo.GetHostInfo().userName); 
         if (curRoomInfo.isHost) // 호스트
