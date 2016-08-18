@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using UnityEngine;
 // 호스트가 방을 만들면 생기는 방정보
 public class RoomInfo
 {
@@ -12,16 +12,19 @@ public class RoomInfo
     private int m_playerCount;
     public State state;  // 방 상태
     public PlayerMode playerMode;
-
+    public int myIndex;
     public RoomInfo(int roomNumber, string title, int map, PlayerInfo hostInfo, PlayerMode mode)
     {
         this.roomNumber = roomNumber;
         this.title = title;
         m_playerCount = 0;
         players = new PlayerInfo[MaxPlayer];
+        for (int i = 0; i < MaxPlayer; i++)
+            players[i] = null;
         AddGuest(hostInfo);
         state = State.Wait;
         playerMode = mode;
+        myIndex = 0;
     }
     public bool isHost
     {
@@ -50,8 +53,12 @@ public class RoomInfo
     public bool AddGuest(PlayerInfo guestInfo, int index)
     {
         if (players[index] != null)
+        {
+            Debug.Log("AddGuest::게스트정보가 해당 자리에 이미 있습니다" + players[index].userName);
             return false;
+        }
         players[index] = guestInfo;
+        m_playerCount++;
         return true;
     }
     public void RemoveGuest(int index)

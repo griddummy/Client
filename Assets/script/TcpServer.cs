@@ -96,7 +96,7 @@ public class TcpServer
     {
         try
         {
-            client.Disconnect(false);
+            //client.Disconnect(false);
             client.Close();
             clientSockes.Remove(client);
             if (OnDisconnectedClient != null)
@@ -107,6 +107,11 @@ public class TcpServer
             Debug.Log("TCPSERVER::DisconnectClient() 실패");
         }
         Debug.Log("TCPSERVER::DisconnectClient() 남은 클라 - " + clientSockes.Count);
+    }
+    public void DisconnectAll()
+    {
+        foreach (Socket client in clientSockes)
+            client.Close();
     }
     private void HandleAsyncAccept(IAsyncResult asyncResult)
     {

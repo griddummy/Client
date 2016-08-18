@@ -96,9 +96,13 @@ public class NetManager : MonoBehaviour {
         m_guest.Setup(ip, HostPort);
         return m_guest.Connect();
     }
-    public void DisconnectToHost()
+    public void DisconnectGuestSocket()
     {
         m_guest.DisConnect();
+    }
+    public void DisconnectHostSocket()
+    {
+        m_host.DisconnectAll();
     }
     private void Receive(PacketQueue queue, Socket sock, Dictionary<int, RecvNotifier> noti) // 서버나 호스트에게 받은 큐
     {        

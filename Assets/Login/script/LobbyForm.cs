@@ -254,19 +254,22 @@ public class LobbyForm : UIForm {
         {
             dialogMessage.Alert("방입장실패");
             dialogMessage.Close(false, 1f);
-            GameManager.instance.netManager.DisconnectToHost(); // 호스트와 연결 종료
+            GameManager.instance.netManager.DisconnectGuestSocket(); // 호스트와 연결 종료
             return;
         }
 
         // 성공
         RoomInfo roomInfo = new RoomInfo(curSelectedRoom.roomNum, curSelectedRoom.roomName, curSelectedRoom.mapType, new PlayerInfo(curSelectedRoom.hostId), RoomInfo.PlayerMode.Guest);
+        Debug.Log("입장허가받음::이전 사람수:" + resultData.otherGuestCount+" myIndex:"+resultData.myIndex);
         // 방정보에 다른 사람 정보 넣기
         for(int i = 0; i < resultData.otherGuestCount; i++)
         {
             roomInfo.AddGuest(new PlayerInfo(resultData.otherGuestID[i]), resultData.otherGuestIndex[i]);
         }
         // 방정보에 내정보 넣기
+        roomInfo.myIndex = resultData.myIndex;
         roomInfo.AddGuest(new PlayerInfo(GameManager.instance.login.id), resultData.myIndex);
+        
         GameManager.instance.currentRoomInfo = roomInfo;
         ChangeForm(typeof(RoomForm).Name); // 폼 변경
     }
