@@ -89,14 +89,14 @@ public class RoomForm : UIForm {
             sendDataToHost.guestIndex = (byte)curRoomInfo.myIndex;
             P2PGuestLeavePacket sendPacketToHost = new P2PGuestLeavePacket(sendDataToHost);
             netManger.SendToHost(sendPacketToHost);
-            netManger.DisconnectGuestSocket();
+            //netManger.DisconnectGuestSocket();
         }
         else
         {
             // 호스트가 나가려고 하면 게스트들에게 알린다
             P2PHostLeavePacket sendDataToAllGuest = new P2PHostLeavePacket();
             netManger.SendToAllGuest(sendDataToAllGuest);
-            netManger.DisconnectHostSocket();
+            //netManger.DisconnectHostSocket();
         }
         ChangeForm(typeof(LobbyForm).Name);
     }
@@ -161,6 +161,7 @@ public class RoomForm : UIForm {
     }
     public void OnReceiveP2PGuestLeave(Socket client, byte[] data) // Guest To Host or Host To ALL Guest
     {
+        Debug.Log("GuestLeave");
         P2PGuestLeavePacket prePacket = new P2PGuestLeavePacket(data);        
         int index = prePacket.GetData().guestIndex;
         if (curRoomInfo.isHost)
@@ -178,6 +179,7 @@ public class RoomForm : UIForm {
     }
     public void OnReceiveP2PHostLeave(Socket client, byte[] data) // Host TO Guest 호스트 퇴장
     {
+        Debug.Log("HostLeave");
         // 호스트가 퇴장 했으면
         // 소켓닫고
         netManger.DisconnectGuestSocket();
