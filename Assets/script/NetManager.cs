@@ -25,14 +25,15 @@ public class NetManager : MonoBehaviour {
     byte[] m_recvBuffer;
     const int BufferSize = 1472;
 
-    public delegate void RecvNotifier(Socket sock, byte[] data); // 누가, 어떤 데이타를 보냇는지
+    public delegate void RecvNotifier(Socket sock, byte[] data); // 누가, 어떤 데이타를 보냇는지    
     private Dictionary<int, RecvNotifier> m_notiServer = new Dictionary<int, RecvNotifier>();
-    private Dictionary<int, RecvNotifier> m_notiClient = new Dictionary<int, RecvNotifier>();
+    private Dictionary<int, RecvNotifier> m_notiP2P = new Dictionary<int, RecvNotifier>();
+
+    public delegate void OnDisconnectGuest(Socket sock); // 클라이언트 끊어짐
 
     public string GameServerIP;
     public int GameServerPort = 9800;
-
-    public string HostIP;
+    
     public int HostPort = 9700;    
 
     void Awake()
@@ -53,14 +54,13 @@ public class NetManager : MonoBehaviour {
         m_sendQueueFromGuest = new PacketQueue();
         indexGuestQueue = new Queue<Socket>();
         m_host.OnReceived += OnReceivedPacketFromGuest;
-        m_host.Setup(HostIP, HostPort);
+        m_host.Setup(HostPort);
 
         // Guest Connection Context
         m_guest = new TcpClient();
         m_recvQueueFromHost = new PacketQueue();
         m_sendQueueFromHost = new PacketQueue();
         m_guest.OnReceived += OnReceivedPacketFromHost;
-        m_guest.Setup(HostIP, HostPort);
     }
     void Start()
     {        
@@ -70,7 +70,7 @@ public class NetManager : MonoBehaviour {
     {
 
         Receive(m_recvQueueFromServer, m_client.socket, m_notiServer);
-        Receive(m_recvQueueFromHost, m_guest.socket, m_notiClient);
+        Receive(m_recvQueueFromHost, m_guest.socket, m_notiP2P);
         ReceiveFromGuest();
     }   
     void OnApplicationQuit()
@@ -93,6 +93,10 @@ public class NetManager : MonoBehaviour {
     {
         m_guest.Setup(ip, HostPort);
         return m_guest.Connect();
+    }
+    public void DisconnectToHost()
+    {
+        m_guest.DisConnect();
     }
     private void Receive(PacketQueue queue, Socket sock, Dictionary<int, RecvNotifier> noti) // 서버나 호스트에게 받은 큐
     {        
@@ -125,7 +129,7 @@ public class NetManager : MonoBehaviour {
             {
                 byte[] msg = new byte[recvSize];
                 Array.Copy(m_recvBuffer, msg, recvSize);
-                ReceivePacket(m_notiClient, sock, msg);
+                ReceivePacket(m_notiP2P, sock, msg);
             }
         }
     }
@@ -143,9 +147,8 @@ public class NetManager : MonoBehaviour {
     {
         m_recvQueueFromHost.Enqueue(msg, size);
     }
-    public int SendToClient<T>(Socket client, IPacket<T> packet) // 패킷에 헤더를 부여하고 송신하는 메서드
+    private byte[] CreateCompletedPacket<T>(IPacket<T> packet)
     {
-        int sendSize = 0;
         byte[] packetData = packet.GetPacketData(); // 패킷의 데이터를 바이트화
 
         // 헤더 생성
@@ -158,7 +161,7 @@ public class NetManager : MonoBehaviour {
         byte[] headerData = null;
         if (serializer.Serialize(header) == false)
         {
-            return 0;
+            return null;
         }
 
         headerData = serializer.GetSerializedData(); // 헤더 데이터를 패킷 바이트로 변환
@@ -170,75 +173,57 @@ public class NetManager : MonoBehaviour {
         int headerSize = Marshal.SizeOf(header.id) + Marshal.SizeOf(header.length);
         Buffer.BlockCopy(headerData, 0, data, 0, headerSize);
         Buffer.BlockCopy(packetData, 0, data, headerSize, packetData.Length);
-
-        //전송
-        if(client == m_guest.socket)
-            sendSize = m_guest.Send(data, data.Length);
-        else
-        {
-            sendSize = m_host.Send(client, data, data.Length);
-        }
+        return data;
+    }
+    public int SendToHost<T>(IPacket<T> packet) // 패킷에 헤더를 부여하고 송신하는 메서드
+    {
+        int sendSize = 0;
+        byte[] data = CreateCompletedPacket(packet);
+        if (data == null)
+            return 0;
+        sendSize = m_guest.Send(data, data.Length);
         return sendSize;
     }
-    public int SendToAllClient<T>(IPacket<T> packet) // 패킷에 헤더를 부여하고 송신하는 메서드
+    public int SendToGuest<T>(Socket guest, IPacket<T> packet) // 패킷에 헤더를 부여하고 송신하는 메서드
     {
         int sendSize = 0;
-        byte[] packetData = packet.GetPacketData(); // 패킷의 데이터를 바이트화
-
-        // 헤더 생성
-        PacketHeader header = new PacketHeader();
-        HeaderSerializer serializer = new HeaderSerializer();
-
-        header.length = (short)packetData.Length; // 패킷 데이터의 길이를 헤더에 입력
-        header.id = (byte)packet.GetPacketId(); // 패킷 데이터에서 ID를 가져와 헤더에 입력
-        Debug.Log("패킷 전송 - id : " + header.id.ToString() + " length :" + header.length);
-        byte[] headerData = null;
-        if (serializer.Serialize(header) == false)
-        {
+        byte[] data = CreateCompletedPacket(packet);
+        if (data == null)
             return 0;
-        }
 
-        headerData = serializer.GetSerializedData(); // 헤더 데이터를 패킷 바이트로 변환
-
-
-        byte[] data = new byte[headerData.Length + header.length]; // 최종 패킷의 길이 = 헤더패킷길이+내용패킷길이
-
-        // 헤더와 내용을 하나의 배열로 복사
-        int headerSize = Marshal.SizeOf(header.id) + Marshal.SizeOf(header.length);
-        Buffer.BlockCopy(headerData, 0, data, 0, headerSize);
-        Buffer.BlockCopy(packetData, 0, data, headerSize, packetData.Length);
+       
+        sendSize = m_host.Send(guest, data, data.Length);
+        
+        return sendSize;
+    }
+    public int SendToAllGuest<T>(IPacket<T> packet) // 패킷에 헤더를 부여하고 송신하는 메서드
+    {
+        int sendSize = 0;
+        byte[] data = CreateCompletedPacket(packet);
+        if (data == null)
+            return 0;
 
         //전송
         m_host.SendAll( data, data.Length);        
         return sendSize;
     }
+    public int SendToAllGuest<T>(Socket excludeClient, IPacket<T> packet) // 패킷에 헤더를 부여하고 송신하는 메서드
+    {
+        int sendSize = 0;
+        byte[] data = CreateCompletedPacket(packet);
+        if (data == null)
+            return 0;
+
+        //전송
+        m_host.SendAll(excludeClient, data, data.Length);
+        return sendSize;
+    }
     public int SendToServer<T>(IPacket<T> packet) // 패킷에 헤더를 부여하고 송신하는 메서드
     {
         int sendSize = 0;
-        byte[] packetData = packet.GetPacketData(); // 패킷의 데이터를 바이트화
-
-        // 헤더 생성
-        PacketHeader header = new PacketHeader();
-        HeaderSerializer serializer = new HeaderSerializer();
-
-        header.length = (short)packetData.Length; // 패킷 데이터의 길이를 헤더에 입력
-        header.id = (byte)packet.GetPacketId(); // 패킷 데이터에서 ID를 가져와 헤더에 입력
-        Debug.Log("패킷 전송 - id : " + header.id.ToString() + " length :" + header.length);
-        byte[] headerData = null;
-        if (serializer.Serialize(header) == false)
-        {
+        byte[] data = CreateCompletedPacket(packet);
+        if (data == null)
             return 0;
-        }
-
-        headerData = serializer.GetSerializedData(); // 헤더 데이터를 패킷 바이트로 변환
-
-
-        byte[] data = new byte[headerData.Length + header.length]; // 최종 패킷의 길이 = 헤더패킷길이+내용패킷길이
-
-        // 헤더와 내용을 하나의 배열로 복사
-        int headerSize = Marshal.SizeOf(header.id) + Marshal.SizeOf(header.length);
-        Buffer.BlockCopy(headerData, 0, data, 0, headerSize);
-        Buffer.BlockCopy(packetData, 0, data, headerSize, packetData.Length);
 
         //전송
         sendSize = m_client.Send(data, data.Length);
@@ -254,13 +239,13 @@ public class NetManager : MonoBehaviour {
     {
         m_notiServer.Remove(packetID);
     }
-    public void RegisterReceiveNotificationClient(int packetID, RecvNotifier notifier)
+    public void RegisterReceiveNotificationP2P(int packetID, RecvNotifier notifier)
     {
-        m_notiClient.Add(packetID, notifier);
+        m_notiP2P.Add(packetID, notifier);
     }
-    public void UnRegisterReceiveNotificationClient(int packetID)
+    public void UnRegisterReceiveNotificationP2P(int packetID)
     {
-        m_notiClient.Remove(packetID);
+        m_notiP2P.Remove(packetID);
     }
     private bool getPacketData(byte[] data, out int id, out byte[] outData)
     {

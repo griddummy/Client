@@ -6,7 +6,7 @@ public class GameManager : MonoBehaviour{
 
 
     private LoginData m_login = null;
-    private Room m_curRoom;
+    private RoomInfo m_currentRoomInfo;
     
     public LoginData login {
         set { m_login = value; }
@@ -32,10 +32,10 @@ public class GameManager : MonoBehaviour{
             return m_instance;
         }
     }
-    public Room curRoom
+    public RoomInfo currentRoomInfo
     {
-        set { m_curRoom = value; }
-        get { return m_curRoom; }
+        set { m_currentRoomInfo = value; }
+        get { return m_currentRoomInfo; }
     }
     void Awake()
     {

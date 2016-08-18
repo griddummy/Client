@@ -5,7 +5,7 @@ public class CreateRoomResultSerializer : Serializer{
     public bool Serialize(CreateRoomResultData data)
     {
         bool ret = true;
-        ret &= Serialize(data.result);
+        ret &= Serialize(data.roomNumber);
         return ret;
     }
     public bool Deserialize(ref CreateRoomResultData element)
@@ -19,7 +19,7 @@ public class CreateRoomResultSerializer : Serializer{
         bool ret = true;
         byte result = 0;
         ret &= Deserialize(ref result);
-        element.result = result;
+        element.roomNumber = result;
         return ret;
     }
 }

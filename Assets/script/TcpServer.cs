@@ -16,8 +16,10 @@ public class TcpServer
 
     public delegate void OnAcceptedEvent(Socket sock);
     public delegate void OnReceivedEvent(Socket sock, byte[] msg, int size);
+    public delegate void OnDisconnectedClientEvent(Socket sock);    
     public event OnReceivedEvent OnReceived;
     public event OnAcceptedEvent OnAccepted;
+    public event OnDisconnectedClientEvent OnDisconnectedClient;
 
     private List<Socket> clientSockes = new List<Socket>();
 
@@ -37,9 +39,9 @@ public class TcpServer
         if (listenSock.Connected)
             return;
         // bind listening socket
-        string ip = GetLocalIPAddress();
-        Debug.Log("내 로컬 IP " + ip);
-        listenSock.Bind(new IPEndPoint(IPAddress.Parse(ip), m_port));
+        m_strIP = GetLocalIPAddress();
+        Debug.Log("내 로컬 IP " + m_strIP);
+        listenSock.Bind(new IPEndPoint(IPAddress.Parse(m_strIP), m_port));
 
         //listen listening socket
         listenSock.Listen(10);
@@ -62,12 +64,11 @@ public class TcpServer
         }
         throw new Exception("Local IP Address Not Found!");
     }
-    public void Setup(string ip, int port)
+    public void Setup(int port)
     {
         if (listenSock.Connected)
             return;
-
-        m_strIP = ip;
+        
         m_port = port;
     }
 
@@ -79,9 +80,11 @@ public class TcpServer
         {            
             foreach (Socket sock in clientSockes)
             {
+                sock.Disconnect(false);
                 sock.Close();
             }
             clientSockes.Clear();
+            listenSock.Disconnect(false);
             listenSock.Close();
         }
         catch
@@ -89,7 +92,22 @@ public class TcpServer
 
         }
     }
-
+    public void DisconnectClient(Socket client)
+    {
+        try
+        {
+            client.Disconnect(false);
+            client.Close();
+            clientSockes.Remove(client);
+            if (OnDisconnectedClient != null)
+                OnDisconnectedClient(client);
+        }
+        catch
+        {
+            Debug.Log("TCPSERVER::DisconnectClient() 실패");
+        }
+        Debug.Log("TCPSERVER::DisconnectClient() 남은 클라 - " + clientSockes.Count);
+    }
     private void HandleAsyncAccept(IAsyncResult asyncResult)
     {
         Socket listenSock = (Socket)asyncResult.AsyncState;
@@ -105,7 +123,8 @@ public class TcpServer
         object ob = asyncData;
 
         try { clientSock.BeginReceive(asyncData.msg, 0, AsyncData.msgMaxLength, SocketFlags.None, asyncReceiveCallback, ob); }
-        catch { clientSock.Close(); clientSockes.Remove(clientSock); }
+        catch {
+            DisconnectClient(clientSock); }
 
         AsyncCallback asyncAcceptCallback = new AsyncCallback(HandleAsyncAccept);
         ob = listenSock;
@@ -124,9 +143,8 @@ public class TcpServer
         }
         catch
         {
-            Debug.Log("TcpServer::HandleAsyncReceive() : EndReceive - 예외");
-            clientSockes.Remove(clientSock);
-            clientSock.Close();
+            Debug.Log("TcpServer::HandleAsyncReceive() : EndReceive - 예외");            
+            DisconnectClient(clientSock);
             return;
         }
         if (OnReceived != null)
@@ -141,11 +159,10 @@ public class TcpServer
         catch
         {
             Debug.Log("TcpServer::HandleAsyncReceive() : BeginReceive - 예외");
-            clientSockes.Remove(clientSock);
-            clientSock.Close();
+            DisconnectClient(clientSock);
         }
     }
-    public int SendAll(byte[] data, int size)
+    public void SendAll(byte[] data, int size)
     {
         foreach (Socket client in clientSockes)
         {
@@ -158,7 +175,23 @@ public class TcpServer
                 Debug.Log("TcpServer::SendAll() : Send - 예외");
             }
         }
-        return -1;
+    }
+    public void SendAll(Socket excludeSock, byte[] data, int size)
+    {
+        foreach (Socket client in clientSockes)
+        {
+            if(client != excludeSock)
+            {
+                try
+                {
+                    client.Send(data, size, SocketFlags.None);
+                }
+                catch
+                {
+                    Debug.Log("TcpServer::SendAll() : Send - 예외");
+                }
+            }            
+        }
     }
 
     public int Send(Socket _client, byte[] data, int size)
@@ -179,12 +212,5 @@ public class TcpServer
             }
         }
         return -1;
-    }
-    public void DisconnectClient(Socket client)
-    {
-        if (clientSockes.Remove(client))
-        {
-            client.Close();
-        }
     }
 }

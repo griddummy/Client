@@ -10,10 +10,11 @@ public enum ClientPacketId
     CreateRoom,     // 방 생성
 
     EnterRoom,      // 방 입장
-    ExitRoom,       // 방 퇴장
+    LeaveRoom,       // 방 퇴장
     StartGame,      // 게임시작
     Logout,         // 로그아웃
     ProgramExit     // 클라이언트 종료
+
 }
 public enum ServerPacketId
 {

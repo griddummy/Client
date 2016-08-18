@@ -22,14 +22,9 @@ public class Room
     public int mapType;
 
     public RoomState roomState;
-    public List<PlayerInfo> listPlayer;
     public int userNum;
-    public const int maxUserNum = 4;
-    public enum Player
-    {
-        Host, Guest
-    }
-    public Player playerMode;
+    public const int maxUserNum = 4;    
+    
     //초기화용
     public Room()
     {
@@ -40,19 +35,16 @@ public class Room
         mapType = (int)MapType.Basic;
         roomState = RoomState.empty;
         userNum = 0;
-        listPlayer = new List<PlayerInfo>();
     }
     public Room(string newHostId, string newRoomName, int newMapType, RoomState newRoomState)
     {
         roomName = newRoomName;
-        //host = newHost;
         hostId = newHostId;
         mapType = newMapType;
         roomState = newRoomState;
         userNum = 1;
-        playerMode = Player.Host;
-        listPlayer = new List<PlayerInfo>();
     }
+
     //생성용
     //public Room(Socket newHost, string newHostId, string newRoomName, int newMapType, RoomState newRoomState)
     //{

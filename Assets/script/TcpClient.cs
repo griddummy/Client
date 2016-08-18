@@ -43,7 +43,7 @@ public class TcpClient
     }
 
     public bool Connect()
-    {
+    {        
         if (m_clientSock.Connected)
             return false;
 
@@ -68,6 +68,7 @@ public class TcpClient
         }
         catch {
             Debug.Log("TCPClient::Connect() : BeginReceive 예외 발생");
+            m_clientSock.Disconnect(false);
             m_clientSock.Close();
             return false;
         }
@@ -79,7 +80,8 @@ public class TcpClient
         if (m_clientSock == null)
             return;
         try
-        {
+        {            
+            m_clientSock.Disconnect(false);
             m_clientSock.Close();
         }
         catch
@@ -99,7 +101,8 @@ public class TcpClient
         catch
         {
             Debug.Log("TCPClient::HandleAsyncReceive() : EndReceive - 예외");
-            clientSock.Close();
+            m_clientSock.Disconnect(false);
+            m_clientSock.Close();
             return;
         }
         if(OnReceived != null)
@@ -112,7 +115,8 @@ public class TcpClient
         }
         catch {
             Debug.Log("TCPClient::HandleAsyncReceive() : BeginReceive - 예외");
-            clientSock.Close();
+            m_clientSock.Disconnect(false);
+            m_clientSock.Close();
         }
     }
 

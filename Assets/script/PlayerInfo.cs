@@ -2,6 +2,10 @@
 
 public class PlayerInfo
 {
-    string userName;
-    string ip;
+    public string userName;
+
+    public PlayerInfo(string _userName)
+    {
+        userName = _userName;
+    }
 }

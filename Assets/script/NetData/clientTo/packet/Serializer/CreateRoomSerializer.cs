@@ -22,7 +22,8 @@ public class CreateRoomSerializer : Serializer
         string title;
         ret &= Deserialize(ref mapType);
         ret &= Deserialize(out title, (int)GetDataSize());
-        element.title = title;        
+        element.map = mapType;
+        element.title = title; 
         return ret;
     }
 }
