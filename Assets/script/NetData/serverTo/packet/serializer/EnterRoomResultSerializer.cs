@@ -25,6 +25,7 @@ public class EnterRoomResultSerializer : Serializer {
         ret &= Deserialize(ref result);
         ret &= Deserialize(out hostIP, (int)GetDataSize()-1);
         element.result = result;
+        element.hostIP = hostIP;
         return ret;
     }
 }

@@ -183,6 +183,7 @@ public class LobbyForm : UIForm {
         }
 
         // 호스트에게 연결을 시도한다.
+        Debug.Log("호스트 IP" + resultData.hostIP);
         if (GameManager.instance.netManager.ConnectToHost(resultData.hostIP))
         {
             dialogMessage.Alert("연결성공");
