@@ -101,14 +101,12 @@ public class TcpClient
         }
         catch
         {
-            Debug.Log("TCPClient::HandleAsyncReceive() : EndReceive - 예외");
+            Debug.Log("TCPClient::HandleAsyncReceive() : EndReceive - 예외 " + m_clientSock.RemoteEndPoint.ToString());
             DisConnect();
             return;
-        }
-        Debug.Log("TcpClient::ReceiveFrom" + m_clientSock.RemoteEndPoint.ToString() + " "+ asyncData.msgLength);
+        }        
         if (OnReceived != null)
         {
-
             OnReceived(asyncData.msg, asyncData.msgLength);
         }        
 
@@ -129,8 +127,7 @@ public class TcpClient
             return -1;
         }
         try
-        {
-            Debug.Log("TcpClient::SendTo" + m_clientSock.RemoteEndPoint.ToString());
+        {            
             return m_clientSock.Send(data, size, SocketFlags.None);
         }
         catch

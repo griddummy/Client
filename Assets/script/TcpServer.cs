@@ -152,7 +152,7 @@ public class TcpServer
             DisconnectClient(clientSock);
             return;
         }
-        Debug.Log("TcpServer::OnReceived " + clientSock.RemoteEndPoint.ToString() + " " + asyncData.msgLength);
+        
         if (OnReceived != null)
         {
             OnReceived(clientSock, asyncData.msg, asyncData.msgLength);

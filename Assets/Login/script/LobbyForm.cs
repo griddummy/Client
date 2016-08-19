@@ -193,7 +193,7 @@ public class LobbyForm : UIForm {
         EnterRoomResultData resultData = packet.GetData();
         if(resultData.result < 1)
         {
-            dialogMessage.Alert("연결실패");
+            dialogMessage.Alert("연결실패-서버거부");
             dialogMessage.Close(false, 2f);
             return;
         }
@@ -207,7 +207,7 @@ public class LobbyForm : UIForm {
         }
         else // 호스트에 연결 실패
         {
-            dialogMessage.Alert("연결실패");
+            dialogMessage.Alert("연결실패-호스트거부");
             dialogMessage.Close(false, 2f);
             
             // 서버에게 방퇴장 알림
@@ -254,7 +254,7 @@ public class LobbyForm : UIForm {
         {
             dialogMessage.Alert("방입장실패");
             dialogMessage.Close(false, 1f);
-            GameManager.instance.netManager.DisconnectGuestSocket(); // 호스트와 연결 종료
+            GameManager.instance.netManager.DisconnectMyGuestSocket(); // 호스트와 연결 종료
             return;
         }
 
