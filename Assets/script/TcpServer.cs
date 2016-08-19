@@ -152,11 +152,18 @@ public class TcpServer
             DisconnectClient(clientSock);
             return;
         }
-        
-        if (OnReceived != null)
+        if (clientSock.Connected)
         {
-            OnReceived(clientSock, asyncData.msg, asyncData.msgLength);
+            if (OnReceived != null)
+            {
+                OnReceived(clientSock, asyncData.msg, asyncData.msgLength);
+            }
+        }else
+        {
+            Debug.Log("TcpServer::HandleAsyncReceive() : EndReceive - 예외");
+            DisconnectClient(clientSock);
         }
+
         AsyncCallback asyncReceiveCallback = new AsyncCallback(HandleAsyncReceive);
         try
         {
