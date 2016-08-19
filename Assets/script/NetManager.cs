@@ -23,7 +23,7 @@ public class NetManager : MonoBehaviour {
 
     byte[] m_sendBuffer;
     byte[] m_recvBuffer;
-    const int BufferSize = 1472;
+    const int BufferSize = 1024;
 
     public delegate void RecvNotifier(Socket sock, byte[] data); // 누가, 어떤 데이타를 보냇는지    
     private Dictionary<int, RecvNotifier> m_notiServer = new Dictionary<int, RecvNotifier>();

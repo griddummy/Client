@@ -8,7 +8,7 @@ public class TcpClient
     class AsyncData
     {
         public Socket clientSock;
-        public const int msgMaxLength = 1472;
+        public const int msgMaxLength = 1024;
         public byte[] msg = new byte[msgMaxLength];
         public int msgLength;
     }
