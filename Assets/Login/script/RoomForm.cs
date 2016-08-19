@@ -117,10 +117,10 @@ public class RoomForm : UIForm {
         string chat = inputChat.text;
         if (chat.Length == 0)
             return;
-
+        inputChat.text = "";
         P2PChatData data = new P2PChatData();
         data.chat = chat;
-        data.guestIndex = (byte)curRoomInfo.myIndex;
+        data.guestIndex = (byte)curRoomInfo.myIndex;       
         P2PChatPacket packet = new P2PChatPacket(data);
         if (curRoomInfo.isHost)
         {
@@ -225,7 +225,7 @@ public class RoomForm : UIForm {
         // 출력       
         P2PChatPacket packet = new P2PChatPacket(data);
                 
-        AddChat(packet.GetData().chat, curRoomInfo.myIndex);
+        AddChat(packet.GetData().chat, packet.GetData().guestIndex);
         
         if (curRoomInfo.isHost)
         {
