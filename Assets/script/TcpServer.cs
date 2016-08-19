@@ -24,7 +24,6 @@ public class TcpServer
     private List<Socket> clientSockes = new List<Socket>();
 
     private Socket listenSock = null;
-    private AsyncCallback asyncReceiveCallback;
     private string m_strIP;
     private int m_port;
     public TcpServer()
@@ -158,7 +157,7 @@ public class TcpServer
         {
             OnReceived(clientSock, asyncData.msg, asyncData.msgLength);
         }
-
+        AsyncCallback asyncReceiveCallback = new AsyncCallback(HandleAsyncReceive);
         try
         {
             clientSock.BeginReceive(asyncData.msg, 0, AsyncData.msgMaxLength, SocketFlags.None, asyncReceiveCallback, asyncData);
