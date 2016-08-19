@@ -187,6 +187,7 @@ public class NetManager : MonoBehaviour {
         byte[] data = CreateCompletedPacket(packet);
         if (data == null)
             return 0;
+        Debug.Log("SendToHost()::소켓에 패킷 Send");
         sendSize = m_guest.Send(data, data.Length);
         return sendSize;
     }
@@ -289,7 +290,7 @@ public class NetManager : MonoBehaviour {
         byte[] packetData;
         int packetId;
         getPacketData(data, out packetId, out packetData);
-
+        Debug.Log("ReceivePacket:: 패킷id:"+packetId + " 길이:" + data.Length);
         RecvNotifier recvNoti;
         if (noti.TryGetValue(packetId, out recvNoti))
         {
