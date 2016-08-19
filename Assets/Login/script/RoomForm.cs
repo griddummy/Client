@@ -105,6 +105,7 @@ public class RoomForm : UIForm {
             netManger.SendToAllGuest(sendDataToAllGuest);
             netManger.CloseHostSocket();
         }
+        GameManager.instance.currentRoomInfo = null;
         ChangeForm(typeof(LobbyForm).Name);
     }
 
@@ -137,8 +138,7 @@ public class RoomForm : UIForm {
 
     // [호스트가 처리하는 패킷 리시브 메서드] 게스트 입장시도
     private void OnReceiveGuestEnterMyRoom(Socket client, byte[] data)
-    {
-        
+    {        
         // 성공시
         P2PEnterRoomPacket resultPacket = new P2PEnterRoomPacket(data);
         P2PEnterRoomData resultData = resultPacket.GetData(); // 접속한 아이디 얻기
@@ -238,6 +238,9 @@ public class RoomForm : UIForm {
         sendDataToServer.roomNum = (byte)curRoomInfo.roomNumber;
         LeaveRoomPacket sendPacketToServer = new LeaveRoomPacket(sendDataToServer);
         netManger.SendToServer(sendPacketToServer);
+
+        // 방 정보 제거
+        GameManager.instance.currentRoomInfo = null;
 
         // 로비로 폼 변경
         ChangeForm(typeof(LobbyForm).Name);

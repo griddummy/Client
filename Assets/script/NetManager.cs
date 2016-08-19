@@ -68,7 +68,6 @@ public class NetManager : MonoBehaviour {
     }
     void Update()
     {
-
         Receive(m_recvQueueFromServer, m_client.socket, m_notiServer);
         Receive(m_recvQueueFromHost, m_guest.socket, m_notiP2P);
         ReceiveFromGuest();
