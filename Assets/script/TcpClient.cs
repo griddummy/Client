@@ -88,6 +88,7 @@ public class TcpClient
         {
 
         }
+        Debug.Log("TcpClient::Disconnect");
     }
     private void HandleAsyncReceive(IAsyncResult asyncResult)
     {
@@ -104,8 +105,10 @@ public class TcpClient
             DisConnect();
             return;
         }
-        if(OnReceived != null)
+        Debug.Log("TcpClient::ReceiveFrom" + m_clientSock.RemoteEndPoint.ToString() + " "+ asyncData.msgLength);
+        if (OnReceived != null)
         {
+
             OnReceived(asyncData.msg, asyncData.msgLength);
         }        
 
@@ -127,6 +130,7 @@ public class TcpClient
         }
         try
         {
+            Debug.Log("TcpClient::SendTo" + m_clientSock.RemoteEndPoint.ToString());
             return m_clientSock.Send(data, size, SocketFlags.None);
         }
         catch
