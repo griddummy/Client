@@ -74,13 +74,12 @@ public class NetManager : MonoBehaviour {
     }   
     void OnApplicationQuit()
     {
-        Debug.Log("Quit::Server Socket Close");
+        Debug.Log("NetManager::AllSocketClose");
         ProgramExitPacket packet = new ProgramExitPacket();
         SendToServer(packet);
         m_client.DisConnect();
-        Debug.Log("Quit::Host Socket Close");
         m_host.ServerClose();
-        Debug.Log("Quit::End");
+        m_guest.DisConnect();
     }
     public void StartHostServer()
     {

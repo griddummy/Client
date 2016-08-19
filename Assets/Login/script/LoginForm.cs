@@ -23,8 +23,18 @@ public class LoginForm : UIForm
         inputID.onValueChanged.AddListener(delegate { ClearWarning(); });
         inputPassword.onValueChanged.AddListener(delegate { ClearWarning(); });
         dialogCreateId.OnClosed += OnClickCreateId;
-        // TO DO: 이미 로그인 된 상태가 아닐때만
-        ChangeForm(GetType().Name);        
+        // 로그인 된 상태인지 검사 -> 게임이 끝나서 메인씬으로 이동했다면 로그인폼부터 실행하기 때문
+        // 물론 로그인폼이 가장 먼저 Start() 될지는 보장 못함..
+        
+        if(GameManager.instance.login != null) // 로그인 정보가 이미 있으면
+        {
+            // 로그인 정보가 있으면 로비 씬으로
+            ChangeForm(typeof(LobbyForm).Name);
+        }
+        else // 로그인 정보가 없으면 로그인 씬으로
+        {
+            ChangeForm(GetType().Name);
+        }
     }
     protected override void OnResume()
     {

@@ -1,8 +1,9 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 using System.Collections.Generic;
 using System.Net.Sockets;
-
+using UnityEngine.SceneManagement;
 public class RoomForm : UIForm {
 
     public DialogMessage dialogMessage;
@@ -16,7 +17,7 @@ public class RoomForm : UIForm {
     private GameManager gm;
     private RoomInfo curRoomInfo;
     private NetManager netManger;
-
+    private Coroutine corCountDown;
     protected override void OnResume()
     {
         gm = GameManager.instance;
@@ -28,16 +29,17 @@ public class RoomForm : UIForm {
         netManger.RegisterReceiveNotificationP2P((int)P2PPacketType.NewGuestEnter, OnReceiveP2PNewGuestEnter);
         netManger.RegisterReceiveNotificationP2P((int)P2PPacketType.HostLeave, OnReceiveP2PHostLeave);
         netManger.RegisterReceiveNotificationP2P((int)P2PPacketType.Chat, OnReceiveP2PChat);
+        btnExit.gameObject.SetActive(true);
         if (curRoomInfo.isHost) // 호스트
         {
             Debug.Log("호스트모드");
-            
-            
+            btnStart.gameObject.SetActive(true);
+
         }
         else
         {
             Debug.Log("게스트모드");
-            
+            btnStart.gameObject.SetActive(false);
             // 플레이어 슬롯 등록
             byte[] index;
             string[] userName;
@@ -66,7 +68,8 @@ public class RoomForm : UIForm {
         {
             
         }
-       
+        if (corCountDown != null)
+            StopCoroutine(corCountDown);
     }
 
     public void SetPlayerSlot(int index, string playerName)
@@ -80,14 +83,35 @@ public class RoomForm : UIForm {
         listPlayer[index].text = "";
         listPlayer[index].gameObject.SetActive(false);
     }
-
-    public void OnClickExitRoom()
+    IEnumerator StartCountDown()
     {
+       
+        int count = 5;
+        while (count > 0)
+        {
+            AddChat(count + "초 후 게임이 시작됩니다");
+            yield return new WaitForSeconds(1f);
+            count--;
+        }
+        // 호스트면 게스트들에게 씬 전환하라고 알린다.
+        if (curRoomInfo.isHost)
+        {
+            P2PStartLoadingScenePacket packet = new P2PStartLoadingScenePacket();
+            netManger.SendToAllGuest(packet);
+
+            // 씬 전환
+            SceneManager.LoadScene("SceneLoading");
+        }
+    }
+   
+    public void OnClickExitRoom()
+    {        
+        Debug.Log("방퇴장- 방번호 " + curRoomInfo.roomNumber);
+
         //서버에게 방 퇴장 전송
         LeaveRoomData sendDataToServer = new LeaveRoomData();
         sendDataToServer.roomNum = (byte)curRoomInfo.roomNumber;
-        LeaveRoomPacket sendPacketToServer = new LeaveRoomPacket(sendDataToServer);
-        Debug.Log("방퇴장- 방번호 " + curRoomInfo.roomNumber);
+        LeaveRoomPacket sendPacketToServer = new LeaveRoomPacket(sendDataToServer);        
         netManger.SendToServer(sendPacketToServer);
 
         if(curRoomInfo.playerMode == RoomInfo.PlayerMode.Guest)
@@ -106,13 +130,17 @@ public class RoomForm : UIForm {
             netManger.SendToAllGuest(sendDataToAllGuest);
             netManger.CloseHostSocket();
         }
+
         GameManager.instance.currentRoomInfo = null;
         ChangeForm(typeof(LobbyForm).Name);
     }
 
     public void OnClickStartGame()
     {
-        
+        btnExit.gameObject.SetActive(false);
+        P2PGameStartCountPacket packetCount = new P2PGameStartCountPacket();
+        netManger.SendToAllGuest(packetCount);
+        corCountDown = StartCoroutine(StartCountDown());
     }
     public void OnClickChat()
     {
@@ -132,10 +160,16 @@ public class RoomForm : UIForm {
         }
         netManger.SendToHost(packet);
     }
+
     private void AddChat(string chat, int index)
     {
         txtChatWindow.text += curRoomInfo.GetGuestInfo(index).userName+ ":"+chat + "\n";        
     }
+    private void AddChat(string chat)
+    {
+        txtChatWindow.text += chat + "\n";
+    }
+
 
     // [호스트가 처리하는 패킷 리시브 메서드] 게스트 입장시도
     private void OnReceiveGuestEnterMyRoom(Socket client, byte[] data)
@@ -262,5 +296,18 @@ public class RoomForm : UIForm {
             netManger.SendToAllGuest(sendPacket);
             return;
         }
+    }
+
+    // [ 게스트가 처리하는 패킷 리시브 메서드 ] - 카운트다운 시작
+    private void OnReceiveP2PStartCountDown(Socket host, byte[] data)
+    {
+        btnExit.gameObject.SetActive(false);
+        corCountDown = StartCoroutine(StartCountDown());
+    }
+
+    // [ 게스트가 처리하는 패킷 리시브 메서드 ] - 로딩씬으로 전환
+    private void OnReceiveP2PStartLoadingScene(Socket host, byte[] data)
+    {        
+        SceneManager.LoadScene("SceneLoading");
     }
 }

@@ -79,16 +79,19 @@ public class TcpClient
     {
         if (m_clientSock == null)
             return;
-        try
-        {            
-            //m_clientSock.Disconnect(false);
-            m_clientSock.Close();
-        }
-        catch
+        if (m_clientSock.Connected)
         {
+            Debug.Log("TcpClient::Disconnect - Remote : " + m_clientSock.RemoteEndPoint.ToString());
+            try
+            {
+                //m_clientSock.Disconnect(false);
+                m_clientSock.Close();
+            }
+            catch
+            {
 
+            }
         }
-        Debug.Log("TcpClient::Disconnect");
     }
     private void HandleAsyncReceive(IAsyncResult asyncResult)
     {
