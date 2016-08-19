@@ -29,6 +29,8 @@ public class RoomForm : UIForm {
         netManger.RegisterReceiveNotificationP2P((int)P2PPacketType.NewGuestEnter, OnReceiveP2PNewGuestEnter);
         netManger.RegisterReceiveNotificationP2P((int)P2PPacketType.HostLeave, OnReceiveP2PHostLeave);
         netManger.RegisterReceiveNotificationP2P((int)P2PPacketType.Chat, OnReceiveP2PChat);
+        netManger.RegisterReceiveNotificationP2P((int)P2PPacketType.GameStartCount, OnReceiveP2PStartCountDown);
+        netManger.RegisterReceiveNotificationP2P((int)P2PPacketType.StartLoadingScene, OnReceiveP2PStartLoadingScene);
         btnExit.gameObject.SetActive(true);
         if (curRoomInfo.isHost) // 호스트
         {
@@ -60,6 +62,8 @@ public class RoomForm : UIForm {
         netManger.UnRegisterReceiveNotificationP2P((int)P2PPacketType.GuestLeave);
         netManger.UnRegisterReceiveNotificationP2P((int)P2PPacketType.HostLeave);
         netManger.UnRegisterReceiveNotificationP2P((int)P2PPacketType.Chat);
+        netManger.UnRegisterReceiveNotificationP2P((int)P2PPacketType.GameStartCount);
+        netManger.UnRegisterReceiveNotificationP2P((int)P2PPacketType.StartLoadingScene);
         if (curRoomInfo.isHost) // 호스트
         {
             

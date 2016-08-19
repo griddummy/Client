@@ -134,7 +134,7 @@ public class NetManager : MonoBehaviour {
             recvSize = m_recvQueueFromGuest.Dequeue(ref m_recvBuffer, m_recvBuffer.Length);
             Socket sock;
             lock (m_objLockGuestPacketQueue)
-            {
+            {                
                  sock = indexGuestQueue.Dequeue();
             }            
             if (recvSize > 0)
@@ -298,7 +298,15 @@ public class NetManager : MonoBehaviour {
         byte[] packetData;
         int packetId;
         getPacketData(data, out packetId, out packetData);
-        Debug.Log("ReceivePacket::"+sock.RemoteEndPoint.ToString()+"패킷id:" + packetId + " 길이:" + data.Length);
+        try
+        {
+            Debug.Log("ReceivePacket::" + sock.RemoteEndPoint.ToString() + "패킷id:" + packetId + " 길이:" + data.Length);
+        }
+        catch
+        {
+            Debug.Log("ReceivePacket::" + "패킷id:" + packetId + " 길이:" + data.Length);
+        }
+        
         RecvNotifier recvNoti;
         if (noti.TryGetValue(packetId, out recvNoti))
         {
