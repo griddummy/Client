@@ -244,12 +244,14 @@ public class LobbyForm : UIForm {
             ChangeForm(typeof(RoomForm).Name); // 폼 변경
         }
     }
-    private void OnReceiveP2PEnterRoomResult(Socket sock, byte[] data) // Host To Guest,방입장요청 결과
-    {
-        // From 호스트 방입장 요청  결과
-        // 현재 방 정보를 매니저에 저장한다.
+
+    // [ 게스트가 처리하는 패킷 메서드 (From 호스트) ] - 방입장 요청에 대한 결과 처리
+    private void OnReceiveP2PEnterRoomResult(Socket sock, byte[] data) 
+    {   
         P2PEnterRoomResultPacket resultPacket = new P2PEnterRoomResultPacket(data);
         P2PEnterRoomResultData resultData = resultPacket.GetData();
+
+        // 결과가 입장 실패라면
         if (resultData.result == (byte)P2PEnterRoomResultData.RESULT.Fail)
         {
             dialogMessage.Alert("방입장실패");
@@ -258,9 +260,10 @@ public class LobbyForm : UIForm {
             return;
         }
 
-        // 성공
+        // 성공이면
         RoomInfo roomInfo = new RoomInfo(curSelectedRoom.roomNum, curSelectedRoom.roomName, curSelectedRoom.mapType, new PlayerInfo(curSelectedRoom.hostId), RoomInfo.PlayerMode.Guest);
         Debug.Log("입장허가받음::이전 사람수:" + resultData.otherGuestCount+" myIndex:"+resultData.myIndex);
+
         // 방정보에 다른 사람 정보 넣기
         for(int i = 0; i < resultData.otherGuestCount; i++)
         {

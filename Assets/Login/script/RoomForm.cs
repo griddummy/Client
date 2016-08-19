@@ -217,7 +217,7 @@ public class RoomForm : UIForm {
             P2PGuestLeavePacket packet = new P2PGuestLeavePacket(newData);
             netManger.SendToAllGuest(client, packet);
         }
-        // 호스트 게스트 둘다 해야 되는 일
+        // 아래부터는  호스트 게스트 둘다 해야 되는 일들이다.
 
         // 해당 게스트를 방 정보에서 제거한다.
         curRoomInfo.RemoveGuest(index);
