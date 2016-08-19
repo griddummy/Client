@@ -87,6 +87,7 @@ public class RoomForm : UIForm {
         LeaveRoomData sendDataToServer = new LeaveRoomData();
         sendDataToServer.roomNum = (byte)curRoomInfo.roomNumber;
         LeaveRoomPacket sendPacketToServer = new LeaveRoomPacket(sendDataToServer);
+        Debug.Log("방퇴장- 방번호 " + curRoomInfo.roomNumber);
         netManger.SendToServer(sendPacketToServer);
 
         if(curRoomInfo.playerMode == RoomInfo.PlayerMode.Guest)
