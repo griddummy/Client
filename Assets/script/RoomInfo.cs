@@ -7,12 +7,14 @@ public class RoomInfo
     public const int MaxPlayer = 4;         // 최대 플레이어
     public int roomNumber;                  // 방번호
     public string title;                    // 방제목
-    public int map;
-    private PlayerInfo[] players; // 방장 포함 (0번째). 순서대로. 나가면 빈칸이 있을 수 있음. 빈칸포함 앞번호부터 채워짐.
-    private int m_playerCount;
+    public int map;    
     public State state;  // 방 상태
     public PlayerMode playerMode;
     public int myIndex;
+
+    private PlayerInfo[] players; // 방장 포함 (0번째). 순서대로. 나가면 빈칸이 있을 수 있음. 빈칸포함 앞번호부터 채워짐.
+    private int m_playerCount;
+
     public RoomInfo(int roomNumber, string title, int map, PlayerInfo hostInfo, PlayerMode mode)
     {
         this.roomNumber = roomNumber;
@@ -26,14 +28,17 @@ public class RoomInfo
         playerMode = mode;
         myIndex = 0;
     }
+
     public bool isHost
     {
         get { return playerMode == PlayerMode.Host; }
     }
+
     public int PlayerCount
     {
         get { return m_playerCount; }
     }
+
     public int AddGuest(PlayerInfo guestInfo)
     {
         if (m_playerCount >= MaxPlayer)
@@ -50,6 +55,7 @@ public class RoomInfo
         return -1;
         
     }
+
     public bool AddGuest(PlayerInfo guestInfo, int index)
     {
         if (players[index] != null)
@@ -61,6 +67,7 @@ public class RoomInfo
         m_playerCount++;
         return true;
     }
+
     public void RemoveGuest(int index)
     {
         if (index == 0 || index >= MaxPlayer)
@@ -71,14 +78,17 @@ public class RoomInfo
             m_playerCount--;
         }      
     }
+
     public PlayerInfo GetGuestInfo(int index)
     {        
         return players[index];
     }
+
     public PlayerInfo GetHostInfo()
     {
         return players[0];
     }
+
     public void GetAllGuestInfo(out byte[] index, out string[] userName)
     {
         index = new byte[m_playerCount];

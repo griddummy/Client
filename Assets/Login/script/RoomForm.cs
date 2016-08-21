@@ -181,6 +181,7 @@ public class RoomForm : UIForm {
         // 성공시
         P2PEnterRoomPacket resultPacket = new P2PEnterRoomPacket(data);
         P2PEnterRoomData resultData = resultPacket.GetData(); // 접속한 아이디 얻기
+
         Debug.Log("RoomForm::게스트 입장시도 " + resultData.userName);
         P2PEnterRoomResultData sendData = new P2PEnterRoomResultData();
         bool bOk = true;
@@ -239,13 +240,14 @@ public class RoomForm : UIForm {
         Debug.Log("RoomForm::새로운 게스트 입장 - " + packet.GetData().userName);
     }
 
-    // [ 게스트, 호스트 둘다 받는 패킷 리시브 메서드] 
+    // [ 게스트, 호스트 둘다 받는 패킷 리시브 메서드] - 게스트 퇴장
     public void OnReceiveP2PGuestLeave(Socket client, byte[] data) 
     {
         Debug.Log("GuestLeave");
         P2PGuestLeavePacket prePacket = new P2PGuestLeavePacket(data);        
         int index = prePacket.GetData().guestIndex;
-        if (curRoomInfo.isHost) // 호스트면 게스트 퇴장을 알린다
+
+        if (curRoomInfo.isHost) // 자신이 호스트면 
         {
             // 해당 게스트와 연결을 끊는다.
             netManger.DisconnectGuestSocket(client);
@@ -261,7 +263,7 @@ public class RoomForm : UIForm {
         // 해당 게스트를 방 정보에서 제거한다.
         curRoomInfo.RemoveGuest(index);
 
-        // 슬롯을 초기화 한다.
+        // 해당 플레이어 슬롯을 초기화 한다.
         SetPlayerSlot(index, "");
     }
 
