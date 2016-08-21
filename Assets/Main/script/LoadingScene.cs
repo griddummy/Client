@@ -72,9 +72,11 @@ public class LoadingScene : MonoBehaviour {
         // 자신이 호스트라면       
         if (curRoominfo.isHost)
         {
-            // 100퍼센트면 카운트 증가
-            LoadingEndPlayerCount++;
-
+            if(dataLoading.percent >= 100)
+            {
+                // 100퍼센트면 카운트 증가
+                LoadingEndPlayerCount++;
+            }
             // 이 패킷을 보낸 게스트를 제외하고 다른 게스트들에게 브로드캐스트한다.  
             SendLoadingProgress(dataLoading.guestIndex, dataLoading.percent, client);
         }
@@ -93,7 +95,7 @@ public class LoadingScene : MonoBehaviour {
     {
         _ao.allowSceneActivation = false; // 로딩이 끝나도 씬 전환이 일어나지 않도록 막는다.
 
-        while (!_ao.isDone) // 로딩이 완료되기 전까지 반복
+        while (_ao.progress < 0.89f) // 로딩이 완료되기 전까지 반복
         {
             yield return new WaitForSeconds(1f); // 1초마다 다음루틴 실행
 
@@ -112,6 +114,7 @@ public class LoadingScene : MonoBehaviour {
         
         // 100%패킷전송
         SendLoadingProgress(curRoominfo.myIndex, 100);
+        
 
         // 호스트는 다른사람들이 끝날때까지 검사한다.
         if (curRoominfo.isHost)
@@ -123,6 +126,7 @@ public class LoadingScene : MonoBehaviour {
             {
                 yield return new WaitForSeconds(1f);
             }
+
             // 모두 로딩이 끝나면 게임 씬 시작 패킷을 전송한다.
             P2PStartGameScenePacket startPacket = new P2PStartGameScenePacket();
             netManager.SendToAllGuest(startPacket);
