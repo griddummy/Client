@@ -163,7 +163,7 @@ public class NetManager : MonoBehaviour {
     {
         m_recvQueueFromHost.Enqueue(msg, size);
     }
-    private byte[] CreateCompletedPacket<T>(IPacket<T> packet)
+    private byte[] CreatePacket<T>(IPacket<T> packet) // 패킷 만드는 메서드
     {
         byte[] packetData = packet.GetPacketData(); // 패킷의 데이터를 바이트화
 
@@ -194,7 +194,7 @@ public class NetManager : MonoBehaviour {
     public int SendToHost<T>(IPacket<T> packet) // 패킷에 헤더를 부여하고 송신하는 메서드
     {
         int sendSize = 0;
-        byte[] data = CreateCompletedPacket(packet);
+        byte[] data = CreatePacket(packet);
         if (data == null)
             return 0;
         Debug.Log("SendToHost()::소켓에 패킷 Send" + data.Length);
@@ -204,7 +204,7 @@ public class NetManager : MonoBehaviour {
     public int SendToGuest<T>(Socket guest, IPacket<T> packet) // 패킷에 헤더를 부여하고 송신하는 메서드
     {
         int sendSize = 0;
-        byte[] data = CreateCompletedPacket(packet);
+        byte[] data = CreatePacket(packet);
         if (data == null)
             return 0;
         sendSize = m_host.Send(guest, data, data.Length);
@@ -214,7 +214,7 @@ public class NetManager : MonoBehaviour {
     public int SendToAllGuest<T>(IPacket<T> packet) // 패킷에 헤더를 부여하고 송신하는 메서드
     {
         int sendSize = 0;
-        byte[] data = CreateCompletedPacket(packet);
+        byte[] data = CreatePacket(packet);
         if (data == null)
         {
             Debug.Log("SendToAllGuest() - 잘못된 패킷" + packet.GetPacketId().ToString());
@@ -228,7 +228,7 @@ public class NetManager : MonoBehaviour {
     public int SendToAllGuest<T>(Socket excludeClient, IPacket<T> packet) // 패킷에 헤더를 부여하고 송신하는 메서드
     {
         int sendSize = 0;
-        byte[] data = CreateCompletedPacket(packet);
+        byte[] data = CreatePacket(packet);
         if (data == null)
             return 0;
 
@@ -239,7 +239,7 @@ public class NetManager : MonoBehaviour {
     public int SendToServer<T>(IPacket<T> packet) // 패킷에 헤더를 부여하고 송신하는 메서드
     {
         int sendSize = 0;
-        byte[] data = CreateCompletedPacket(packet);
+        byte[] data = CreatePacket(packet);
         if (data == null)
             return 0;
 

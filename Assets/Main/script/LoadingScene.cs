@@ -21,6 +21,7 @@ public class LoadingScene : MonoBehaviour {
 
         // 방 인원수만큼 로딩바를 만든다.
         CreateLoadingBar(curRoominfo.PlayerCount);
+        Debug.Log("LoadingScene:: 플레이어 수 - " + curRoominfo.PlayerCount);
 
         //TODO
         // 게임상태가 로딩이 아니라면 
@@ -51,7 +52,8 @@ public class LoadingScene : MonoBehaviour {
         for(int i = 0; i < count; i++)
         {
             GameObject obj = Instantiate(prefabLoadingBar); // 로딩바 오브젝트 생성
-            PlayerLoadingBar bar = obj.AddComponent<PlayerLoadingBar>(); // 로딩바 스크립트 붙이기
+            obj.GetComponent<RectTransform>().localScale = Vector3.one;
+            PlayerLoadingBar bar = obj.GetComponent<PlayerLoadingBar>(); // 로딩바 스크립트 붙이기
             obj.transform.SetParent(transGridLayout); // 그리드오브젝트에 추가
             listBar.Add(bar); // 로딩바 저장
         }        
