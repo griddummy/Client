@@ -17,14 +17,14 @@ public class LobbyForm : UIForm {
     
     private Dictionary<int,Room> listRoomInfo = new Dictionary<int,Room>();
     private Room curSelectedRoom;
-    private GameManager gameManager;
+    private MainManager gameManager;
     private NetManager netManager;
     private CreateRoomData lastCreateRoomData;
     private Coroutine corRequestRoomListLoop;
     protected override void Awake()
     {
         base.Awake();
-        gameManager = GameManager.instance;
+        gameManager = MainManager.instance;
         netManager = gameManager.netManager;
         dialogCreateRoom.OnClosed += OnClickCreateRoom;
     }
@@ -186,7 +186,9 @@ public class LobbyForm : UIForm {
             UpdateList();
         }
     }
-    private void OnReceiveEnterRoomResultFromServer(Socket sock, byte[] data) // 방 입장 결과 리시버
+
+    // 방입장 결과 리시버 [ 호스트 -> 게스트 ]
+    private void OnReceiveEnterRoomResultFromServer(Socket sock, byte[] data) 
     {        
         // 성공이면
         EnterRoomResultPacket packet = new EnterRoomResultPacket(data);
@@ -201,7 +203,7 @@ public class LobbyForm : UIForm {
 
         // 호스트에게 연결을 시도한다.
         Debug.Log("호스트 IP" + resultData.hostIP);
-        if (GameManager.instance.netManager.ConnectToHost(resultData.hostIP))
+        if (MainManager.instance.netManager.ConnectToHost(resultData.hostIP))
         {
             dialogMessage.Alert("연결성공");
         }
@@ -214,14 +216,14 @@ public class LobbyForm : UIForm {
             LeaveRoomData leaveData = new LeaveRoomData();
             leaveData.roomNum = (byte)curSelectedRoom.roomNum;
             LeaveRoomPacket leavePacket = new LeaveRoomPacket(leaveData);
-            GameManager.instance.netManager.SendToServer(leavePacket);
+            MainManager.instance.netManager.SendToServer(leavePacket);
             return;
         }
         // 입장요청 To Host
         P2PEnterRoomData enterRoomData = new P2PEnterRoomData();
-        enterRoomData.userName = GameManager.instance.login.id;
+        enterRoomData.userName = MainManager.instance.login.id;
         P2PEnterRoomPacket enterRoomPacket = new P2PEnterRoomPacket(enterRoomData);
-        GameManager.instance.netManager.SendToHost(enterRoomPacket);
+        MainManager.instance.netManager.SendToHost(enterRoomPacket);
 
        
     }
@@ -236,11 +238,11 @@ public class LobbyForm : UIForm {
         }
         else // 방 생성 성공
         {
-                
+                   
             // 현재 플레이어정보를 방의 호스트로 설정한다.
-            LoginData loginData = GameManager.instance.login;
-            RoomInfo roomInfo = new RoomInfo(packet.GetData().roomNumber, lastCreateRoomData.title, lastCreateRoomData.map, new PlayerInfo(loginData.id), RoomInfo.PlayerMode.Host);
-            GameManager.instance.currentRoomInfo = roomInfo;
+            LoginData loginData = MainManager.instance.login;
+            RoomInfo roomInfo = new RoomInfo(packet.GetData().roomNumber, lastCreateRoomData.title, lastCreateRoomData.map, new PlayerInfo(loginData.id), RoomInfo.PlayerType.Host);
+            MainManager.instance.currentRoomInfo = roomInfo;
             dialogMessage.Alert("방 생성 성공");
             Debug.Log("방생성 - 성공 - 방번호 : " + packet.GetData().roomNumber);
             ChangeForm(typeof(RoomForm).Name); // 폼 변경
@@ -258,13 +260,13 @@ public class LobbyForm : UIForm {
         {
             dialogMessage.Alert("서버 -> 방입장실패");
             dialogMessage.Close(false, 1f);
-            GameManager.instance.netManager.DisconnectMyGuestSocket(); // 호스트와 연결 종료
+            MainManager.instance.netManager.DisconnectMyGuestSocket(); // 호스트와 연결 종료
             return;
         }
 
         // 성공이면
-        RoomInfo roomInfo = new RoomInfo(curSelectedRoom.roomNum, curSelectedRoom.roomName, curSelectedRoom.mapType, new PlayerInfo(curSelectedRoom.hostId), RoomInfo.PlayerMode.Guest);
-        Debug.Log("서버 - 방입장 성공::이전 사람수:" + resultData.otherGuestCount+" myIndex:"+resultData.myIndex);
+        RoomInfo roomInfo = new RoomInfo(curSelectedRoom.roomNum, curSelectedRoom.roomName, curSelectedRoom.mapType, new PlayerInfo(curSelectedRoom.hostId), RoomInfo.PlayerType.Guest);
+        Debug.Log("서버 - 방입장 성공::이전 사람수:" + resultData.otherGuestCount + " myIndex:" + resultData.myIndex);
 
         // 방정보에 다른 사람 정보 넣기
         for(int i = 0; i < resultData.otherGuestCount; i++)
@@ -273,9 +275,9 @@ public class LobbyForm : UIForm {
         }
         // 방정보에 내정보 넣기
         roomInfo.myIndex = resultData.myIndex;
-        roomInfo.AddGuest(new PlayerInfo(GameManager.instance.login.id), resultData.myIndex);
+        roomInfo.AddGuest(new PlayerInfo(MainManager.instance.login.id), resultData.myIndex);
         
-        GameManager.instance.currentRoomInfo = roomInfo;
+        MainManager.instance.currentRoomInfo = roomInfo;
         ChangeForm(typeof(RoomForm).Name); // 폼 변경
     }
 }

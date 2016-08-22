@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net.Sockets;
 using UnityEngine.SceneManagement;
+
 public class RoomForm : UIForm {
 
     public DialogMessage dialogMessage;
@@ -14,23 +15,23 @@ public class RoomForm : UIForm {
     public InputField inputChat;
     public Text txtChatWindow;
 
-    private GameManager gm;
+    private MainManager gm;
     private RoomInfo curRoomInfo;
     private NetManager netManger;
     private Coroutine corCountDown;
     protected override void OnResume()
     {
-        gm = GameManager.instance;
-        netManger = GameManager.instance.netManager;
-        curRoomInfo = GameManager.instance.currentRoomInfo;
-        SetPlayerSlot(0, curRoomInfo.GetHostInfo().userName);
+        gm = MainManager.instance;
+        netManger = MainManager.instance.netManager;
+        curRoomInfo = MainManager.instance.currentRoomInfo;
+        SetPlayerSlot(0, curRoomInfo.GetHostInfo().playerName);
         netManger.RegisterReceiveNotificationP2P((int)P2PPacketType.GuestLeave, OnReceiveP2PGuestLeave);
         netManger.RegisterReceiveNotificationP2P((int)P2PPacketType.EnterRoom, OnReceiveGuestEnterMyRoom);
         netManger.RegisterReceiveNotificationP2P((int)P2PPacketType.NewGuestEnter, OnReceiveP2PNewGuestEnter);
         netManger.RegisterReceiveNotificationP2P((int)P2PPacketType.HostLeave, OnReceiveP2PHostLeave);
         netManger.RegisterReceiveNotificationP2P((int)P2PPacketType.Chat, OnReceiveP2PChat);
         netManger.RegisterReceiveNotificationP2P((int)P2PPacketType.GameStartCount, OnReceiveP2PStartCountDown);
-        netManger.RegisterReceiveNotificationP2P((int)P2PPacketType.StartLoadingScene, OnReceiveP2PStartLoadingScene);
+        netManger.RegisterReceiveNotificationP2P((int)P2PPacketType.StartGameScene, OnReceiveP2PStartGameScene);
         btnExit.gameObject.SetActive(true);
         if (curRoomInfo.isHost) // 호스트
         {
@@ -63,7 +64,8 @@ public class RoomForm : UIForm {
         netManger.UnRegisterReceiveNotificationP2P((int)P2PPacketType.HostLeave);
         netManger.UnRegisterReceiveNotificationP2P((int)P2PPacketType.Chat);
         netManger.UnRegisterReceiveNotificationP2P((int)P2PPacketType.GameStartCount);
-        netManger.UnRegisterReceiveNotificationP2P((int)P2PPacketType.StartLoadingScene);
+        netManger.UnRegisterReceiveNotificationP2P((int)P2PPacketType.StartGameScene);
+
         if (curRoomInfo.isHost) // 호스트
         {
             
@@ -97,14 +99,14 @@ public class RoomForm : UIForm {
             yield return new WaitForSeconds(1f);
             count--;
         }
-        // 호스트면 게스트들에게 씬 전환하라고 알린다.
+        // 호스트면 게스트들에게 게임씬을 실행하도록 전한다.
         if (curRoomInfo.isHost)
         {
-            P2PStartLoadingScenePacket packet = new P2PStartLoadingScenePacket();
+            P2PStartGameScenePacket packet = new P2PStartGameScenePacket();
             netManger.SendToAllGuest(packet);
 
-            // 씬 전환
-            SceneManager.LoadScene("SceneLoading");
+            // 게임 씬 전환
+            StartGameScene();
         }
     }
    
@@ -118,7 +120,7 @@ public class RoomForm : UIForm {
         LeaveRoomPacket sendPacketToServer = new LeaveRoomPacket(sendDataToServer);        
         netManger.SendToServer(sendPacketToServer);
 
-        if(curRoomInfo.playerMode == RoomInfo.PlayerMode.Guest)
+        if(curRoomInfo.myType == RoomInfo.PlayerType.Guest)
         {
             // 게스트가 나가려고 하면 호스트에게 알린다
             P2PGuestLeaveData sendDataToHost = new P2PGuestLeaveData();
@@ -135,7 +137,7 @@ public class RoomForm : UIForm {
             netManger.CloseHostSocket();
         }
 
-        GameManager.instance.currentRoomInfo = null;
+        MainManager.instance.currentRoomInfo = null;
         ChangeForm(typeof(LobbyForm).Name);
     }
 
@@ -167,7 +169,7 @@ public class RoomForm : UIForm {
 
     private void AddChat(string chat, int index)
     {
-        txtChatWindow.text += curRoomInfo.GetGuestInfo(index).userName+ ":"+chat + "\n";        
+        txtChatWindow.text += curRoomInfo.GetGuestInfo(index).playerName+ ":"+chat + "\n";        
     }
     private void AddChat(string chat)
     {
@@ -281,7 +283,7 @@ public class RoomForm : UIForm {
         netManger.SendToServer(sendPacketToServer);
 
         // 방 정보 제거
-        GameManager.instance.currentRoomInfo = null;
+        MainManager.instance.currentRoomInfo = null;
 
         // 로비로 폼 변경
         ChangeForm(typeof(LobbyForm).Name);
@@ -311,9 +313,18 @@ public class RoomForm : UIForm {
         corCountDown = StartCoroutine(StartCountDown());
     }
 
-    // [ 게스트가 처리하는 패킷 리시브 메서드 ] - 로딩씬으로 전환
-    private void OnReceiveP2PStartLoadingScene(Socket host, byte[] data)
-    {        
-        SceneManager.LoadScene("SceneLoading");
+    // [ 게스트가 처리하는 패킷 리시브 메서드 ] - 게임씬으로 전환
+    private void OnReceiveP2PStartGameScene(Socket host, byte[] data)
+    {
+        // 맵에 따른 씬 부르기
+        StartGameScene();
+    }
+
+    private void StartGameScene()
+    {
+        //TODO
+        // 현재 맵정보를 얻어서 해당 Scene을 실행한다.
+        SceneManager.LoadScene("SceneTestGame"); // TEST
+
     }
 }

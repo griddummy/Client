@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class P2PStartLoadingScenePacket : IPacket<NullData>
+public class P2PStartGamePacket : IPacket<NullData>
 {
     public byte[] GetPacketData() // 바이트형 패킷(송신용)
     {
@@ -15,6 +15,6 @@ public class P2PStartLoadingScenePacket : IPacket<NullData>
 
     public int GetPacketId()
     {
-        return (int)P2PPacketType.StartLoadingScene;
+        return (int)P2PPacketType.StartGame;
     }
 }

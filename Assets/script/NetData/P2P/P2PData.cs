@@ -8,11 +8,10 @@ public enum P2PPacketType
     HostLeave,
 
     Chat,
-    GameStartCount,
-    StartLoadingScene,
-    Loading,
+    GameStartCount,    
     StartGameScene,
-
+    LoadComplete,
+    StartGame,
     EndGame
 }
 public class P2PEnterRoomData
@@ -42,8 +41,7 @@ public class P2PChatData // 채팅 데이터
     public byte guestIndex;
     public string chat;
 }
-public class P2PLoadingData // 로딩 데이터
+public class P2PLoadCompleteData
 {
-    public byte guestIndex;
-    public byte percent; //0~100
+    public byte playerIndex; // 방에서 몇번째 플레이어인지
 }

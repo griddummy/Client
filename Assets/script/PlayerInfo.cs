@@ -1,11 +1,12 @@
-﻿using System.Net;
+﻿using System.Net.Sockets;
 
 public class PlayerInfo
 {
-    public string userName;
+    public string playerName;
+    public int index;
 
-    public PlayerInfo(string _userName)
+    public PlayerInfo(string _playerName)
     {
-        userName = _userName;
+        playerName = _playerName;
     }
 }

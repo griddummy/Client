@@ -14,11 +14,11 @@ public class LoginForm : UIForm
     public DialogCreateId dialogCreateId;
     public DialogMessage msgBox;
     private NetManager netManager;
-    private GameManager gameManager;
+    private MainManager gameManager;
     private LoginData lastLoginData;
     void Start()
     {
-        gameManager = GameManager.instance;
+        gameManager = MainManager.instance;
         netManager = gameManager.netManager;
         inputID.onValueChanged.AddListener(delegate { ClearWarning(); });
         inputPassword.onValueChanged.AddListener(delegate { ClearWarning(); });
@@ -26,7 +26,7 @@ public class LoginForm : UIForm
         // 로그인 된 상태인지 검사 -> 게임이 끝나서 메인씬으로 이동했다면 로그인폼부터 실행하기 때문
         // 물론 로그인폼이 가장 먼저 Start() 될지는 보장 못함..
         
-        if(GameManager.instance.login != null) // 로그인 정보가 이미 있으면
+        if(MainManager.instance.login != null) // 로그인 정보가 이미 있으면
         {
             // 로그인 정보가 있으면 로비 씬으로
             ChangeForm(typeof(LobbyForm).Name);
@@ -112,7 +112,7 @@ public class LoginForm : UIForm
 
         if (bLoginSuccess)
         {
-            GameManager.instance.login = lastLoginData;
+            MainManager.instance.login = lastLoginData;
             if (!ChangeForm(typeof(LobbyForm).Name))
             {
                 Debug.Log("Fail 폼 체인징");

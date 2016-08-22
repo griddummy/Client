@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class GameManager : MonoBehaviour{
+public class MainManager : MonoBehaviour{
         
     public NetManager m_netManager;
 
@@ -14,19 +14,19 @@ public class GameManager : MonoBehaviour{
     }
     
     public NetManager netManager { get { return m_netManager; } }
-    public static GameManager m_instance = null;
-    public static GameManager instance
+    public static MainManager m_instance = null;
+    public static MainManager instance
     {
         get
         {
             if(m_instance == null)
             {
-                m_instance = FindObjectOfType<GameManager>();
+                m_instance = FindObjectOfType<MainManager>();
                 if(m_instance == null)
                 {
-                    GameObject gob = new GameObject("Logic");                    
+                    GameObject gob = new GameObject("Logic");
                     GameObject inst = Instantiate(gob) as GameObject;
-                    m_instance = inst.AddComponent<GameManager>();
+                    m_instance = inst.AddComponent<MainManager>();
                 }
             }
             return m_instance;
